@@ -12,6 +12,7 @@ Available Commands:
   index:sync  sync search index
 
 Flags:
+  -a, --addr string         listen address for graphql (default ":9000")
   -h, --help                help for server
   -i, --index:path string   index file (default is ./index.bleve) (default "./index.bleve")
 
