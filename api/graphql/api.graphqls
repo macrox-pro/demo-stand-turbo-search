@@ -1,0 +1,21 @@
+type SearchResultObject {
+    id: ID!
+    type: String!
+    score: Float!
+    isActive: Boolean!
+    url: String
+    slug: String
+    name: String
+    title: String
+    picture: String
+    provider: String
+    description: String
+    year: String
+    yearEnd: String
+    yearStart: String
+    ageRestriction: String
+}
+
+type Query {
+    search(query: String!): [SearchResultObject!]!
+}

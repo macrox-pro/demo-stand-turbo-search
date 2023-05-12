@@ -65,7 +65,7 @@ var indexSyncCmd = &cobra.Command{
 		client := resty.New()
 		for {
 			var (
-				url      = fmt.Sprintf("https://premier.one/api/metainfo/tv/?page=%d&limit=%d", page, limit)
+				url      = fmt.Sprintf("https://premier.one/api/metainfo/tv/?page=%d&limit=%d&picture_type=card_group&style=portrait&device=web", page, limit)
 				hashPath = path.Join(cachePath, fmt.Sprintf("%s.json", utils.SHA1(url)))
 				body     []byte
 				isCache  bool
@@ -103,14 +103,17 @@ var indexSyncCmd = &cobra.Command{
 			}
 			fmt.Println("Iteration", page, "with", len(payload.Results), "items...")
 			for _, item := range payload.Results {
-				if !item.IsActive {
-					// log.Println("Item is not active - ", item)
-					continue
-				}
 				object := models.IndexObject{
-					Name:        strings.TrimSpace(item.Name),
-					Title:       strings.TrimSpace(item.OriginalTitle),
-					Description: strings.TrimSpace(item.Description),
+					Slug:           strings.TrimSpace(item.Slug),
+					Name:           strings.TrimSpace(item.Name),
+					Year:           strings.TrimSpace(item.Year),
+					Title:          strings.TrimSpace(item.OriginalTitle),
+					YearEnd:        strings.TrimSpace(item.YearEnd),
+					Picture:        strings.TrimSpace(item.Picture),
+					IsActive:       item.IsActive,
+					YearStart:      strings.TrimSpace(item.YearStart),
+					Description:    strings.TrimSpace(item.Description),
+					AgeRestriction: strings.TrimSpace(item.AgeRestriction),
 				}
 				if item.Type != nil {
 					object.Type = item.Type.Title
