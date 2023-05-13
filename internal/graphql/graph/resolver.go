@@ -6,8 +6,10 @@
 
 package graph
 
-import "github.com/blevesearch/bleve/v2"
+import (
+	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+)
 
 type Resolver struct {
-	Index bleve.Index
+	SearchEngine search.Engine
 }

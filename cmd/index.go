@@ -110,6 +110,7 @@ var indexSyncCmd = &cobra.Command{
 					Title:          strings.TrimSpace(item.OriginalTitle),
 					YearEnd:        strings.TrimSpace(item.YearEnd),
 					Picture:        strings.TrimSpace(item.Picture),
+					Keywords:       strings.TrimSpace(item.Keywords),
 					IsActive:       item.IsActive,
 					YearStart:      strings.TrimSpace(item.YearStart),
 					Description:    strings.TrimSpace(item.Description),

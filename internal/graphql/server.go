@@ -2,16 +2,16 @@ package graphql
 
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/blevesearch/bleve/v2"
 	"github.com/legion-zver/premier-one-bleve-search/internal/graphql/graph"
+	"github.com/legion-zver/premier-one-bleve-search/internal/search"
 )
 
-func NewServer(index bleve.Index) *handler.Server {
+func NewServer(engine search.Engine) *handler.Server {
 	return handler.NewDefaultServer(
 		graph.NewExecutableSchema(
 			graph.Config{
 				Resolvers: &graph.Resolver{
-					Index: index,
+					SearchEngine: engine,
 				},
 			},
 		),

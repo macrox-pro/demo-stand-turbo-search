@@ -10,29 +10,12 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/blevesearch/bleve/v2"
-
 	"github.com/legion-zver/premier-one-bleve-search/internal/graphql/graph/model"
 )
 
 // Search is the resolver for the search field.
-func (r *queryResolver) Search(_ context.Context, query string) ([]*model.SearchResultObject, error) {
-	req := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
-	req.Fields = []string{
-		"type",
-		"slug",
-		"name",
-		"year",
-		"title",
-		"yearEnd",
-		"picture",
-		"provider",
-		"isActive",
-		"yearStart",
-		"description",
-		"ageRestriction",
-	}
-	resp, err := r.Index.Search(req)
+func (r *queryResolver) Search(ctx context.Context, query string) ([]*model.SearchResultObject, error) {
+	resp, err := r.SearchEngine.Search(ctx, query)
 	if err != nil {
 		return nil, err
 	}

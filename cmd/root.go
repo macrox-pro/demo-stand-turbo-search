@@ -4,6 +4,14 @@ import (
 	"log"
 	"net/http"
 
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/legion-zver/premier-one-bleve-search/internal/grpc/nlp"
+
+	"google.golang.org/grpc"
+
+	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/legion-zver/premier-one-bleve-search/internal/graphql"
 
@@ -17,8 +25,9 @@ import (
 )
 
 var (
-	indexPath string
-	addr      string
+	nlpGrpcAddr string
+	indexPath   string
+	addr        string
 )
 
 var rootCmd = &cobra.Command{
@@ -28,7 +37,30 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err)
 		}
-		server := graphql.NewServer(index)
+		options := search.Options{
+			Index: index,
+		}
+		if len(nlpGrpcAddr) > 1 {
+			cc, err := grpc.Dial(
+				nlpGrpcAddr,
+				grpc.WithTransportCredentials(
+					insecure.NewCredentials(),
+				),
+			)
+			if err != nil {
+				log.Println(err)
+			} else {
+				defer func(cc *grpc.ClientConn) {
+					_ = cc.Close()
+				}(cc)
+				options.NLP = nlp.NewNLPClient(cc)
+			}
+		}
+		engine, err := search.New(options)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		server := graphql.NewServer(engine)
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 		http.Handle("/query", server)
 		log.Println("Listen GraphQL on", addr)
@@ -55,5 +87,9 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(
 		&indexPath, "index:path", "i", "./index.bleve",
 		"index file (default is ./index.bleve)",
+	)
+	rootCmd.PersistentFlags().StringVar(
+		&nlpGrpcAddr, "nlp:grpc:addr", "127.0.0.1:50051",
+		"nlp grpc address",
 	)
 }
