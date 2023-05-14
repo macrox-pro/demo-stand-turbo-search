@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Query struct {
-		Search func(childComplexity int, query string) int
+		Search func(childComplexity int, query string, isActive *bool) int
 	}
 
 	SearchResultObject struct {
@@ -52,6 +52,7 @@ type ComplexityRoot struct {
 		Description    func(childComplexity int) int
 		ID             func(childComplexity int) int
 		IsActive       func(childComplexity int) int
+		Keywords       func(childComplexity int) int
 		Name           func(childComplexity int) int
 		Picture        func(childComplexity int) int
 		Provider       func(childComplexity int) int
@@ -67,7 +68,7 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Search(ctx context.Context, query string) ([]*model.SearchResultObject, error)
+	Search(ctx context.Context, query string, isActive *bool) ([]*model.SearchResultObject, error)
 }
 
 type executableSchema struct {
@@ -95,7 +96,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Search(childComplexity, args["query"].(string)), true
+		return e.complexity.Query.Search(childComplexity, args["query"].(string), args["isActive"].(*bool)), true
 
 	case "SearchResultObject.ageRestriction":
 		if e.complexity.SearchResultObject.AgeRestriction == nil {
@@ -124,6 +125,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchResultObject.IsActive(childComplexity), true
+
+	case "SearchResultObject.keywords":
+		if e.complexity.SearchResultObject.Keywords == nil {
+			break
+		}
+
+		return e.complexity.SearchResultObject.Keywords(childComplexity), true
 
 	case "SearchResultObject.name":
 		if e.complexity.SearchResultObject.Name == nil {
@@ -265,6 +273,7 @@ var sources = []*ast.Source{
     title: String
     picture: String
     provider: String
+    keywords: [String!]
     description: String
     year: String
     yearEnd: String
@@ -273,7 +282,7 @@ var sources = []*ast.Source{
 }
 
 type Query {
-    search(query: String!): [SearchResultObject!]!
+    search(query: String! isActive: Boolean): [SearchResultObject!]!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -309,6 +318,15 @@ func (ec *executionContext) field_Query_search_args(ctx context.Context, rawArgs
 		}
 	}
 	args["query"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["isActive"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isActive"] = arg1
 	return args, nil
 }
 
@@ -364,7 +382,7 @@ func (ec *executionContext) _Query_search(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Search(rctx, fc.Args["query"].(string))
+		return ec.resolvers.Query().Search(rctx, fc.Args["query"].(string), fc.Args["isActive"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -409,6 +427,8 @@ func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field
 				return ec.fieldContext_SearchResultObject_picture(ctx, field)
 			case "provider":
 				return ec.fieldContext_SearchResultObject_provider(ctx, field)
+			case "keywords":
+				return ec.fieldContext_SearchResultObject_keywords(ctx, field)
 			case "description":
 				return ec.fieldContext_SearchResultObject_description(ctx, field)
 			case "year":
@@ -976,6 +996,47 @@ func (ec *executionContext) _SearchResultObject_provider(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_SearchResultObject_provider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SearchResultObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SearchResultObject_keywords(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SearchResultObject_keywords(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Keywords, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SearchResultObject_keywords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SearchResultObject",
 		Field:      field,
@@ -3101,6 +3162,10 @@ func (ec *executionContext) _SearchResultObject(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._SearchResultObject_provider(ctx, field, obj)
 
+		case "keywords":
+
+			out.Values[i] = ec._SearchResultObject_keywords(ctx, field, obj)
+
 		case "description":
 
 			out.Values[i] = ec._SearchResultObject_description(ctx, field, obj)
@@ -3841,6 +3906,44 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

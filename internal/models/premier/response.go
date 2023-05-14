@@ -1,4 +1,4 @@
-package models
+package premier
 
 type Response[T any] struct {
 	HasNext     bool    `json:"has_next,omitempty"`

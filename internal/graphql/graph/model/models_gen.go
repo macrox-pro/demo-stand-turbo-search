@@ -3,19 +3,20 @@
 package model
 
 type SearchResultObject struct {
-	ID             string  `json:"id"`
-	Type           string  `json:"type"`
-	Score          float64 `json:"score"`
-	IsActive       bool    `json:"isActive"`
-	URL            *string `json:"url,omitempty"`
-	Slug           *string `json:"slug,omitempty"`
-	Name           *string `json:"name,omitempty"`
-	Title          *string `json:"title,omitempty"`
-	Picture        *string `json:"picture,omitempty"`
-	Provider       *string `json:"provider,omitempty"`
-	Description    *string `json:"description,omitempty"`
-	Year           *string `json:"year,omitempty"`
-	YearEnd        *string `json:"yearEnd,omitempty"`
-	YearStart      *string `json:"yearStart,omitempty"`
-	AgeRestriction *string `json:"ageRestriction,omitempty"`
+	ID             string   `json:"id"`
+	Type           string   `json:"type"`
+	Score          float64  `json:"score"`
+	IsActive       bool     `json:"isActive"`
+	URL            *string  `json:"url,omitempty"`
+	Slug           *string  `json:"slug,omitempty"`
+	Name           *string  `json:"name,omitempty"`
+	Title          *string  `json:"title,omitempty"`
+	Picture        *string  `json:"picture,omitempty"`
+	Provider       *string  `json:"provider,omitempty"`
+	Keywords       []string `json:"keywords,omitempty"`
+	Description    *string  `json:"description,omitempty"`
+	Year           *string  `json:"year,omitempty"`
+	YearEnd        *string  `json:"yearEnd,omitempty"`
+	YearStart      *string  `json:"yearStart,omitempty"`
+	AgeRestriction *string  `json:"ageRestriction,omitempty"`
 }

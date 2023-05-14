@@ -1,4 +1,4 @@
-package models
+package premier
 
 type Provider struct {
 	ID   uint64 `json:"id"`

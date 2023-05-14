@@ -9,6 +9,7 @@ type SearchResultObject {
     title: String
     picture: String
     provider: String
+    keywords: [String!]
     description: String
     year: String
     yearEnd: String
@@ -17,5 +18,5 @@ type SearchResultObject {
 }
 
 type Query {
-    search(query: String!): [SearchResultObject!]!
+    search(query: String! isActive: Boolean): [SearchResultObject!]!
 }

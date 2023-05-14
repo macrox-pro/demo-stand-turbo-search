@@ -8,14 +8,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/legion-zver/premier-one-bleve-search/internal/graphql/graph/model"
+	"github.com/mitchellh/mapstructure"
 )
 
 // Search is the resolver for the search field.
-func (r *queryResolver) Search(ctx context.Context, query string) ([]*model.SearchResultObject, error) {
-	resp, err := r.SearchEngine.Search(ctx, query)
+func (r *queryResolver) Search(ctx context.Context, query string, isActive *bool) ([]*model.SearchResultObject, error) {
+	resp, err := r.SearchEngine.Search(ctx, query, isActive)
 	if err != nil {
 		return nil, err
 	}

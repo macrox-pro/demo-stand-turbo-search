@@ -1,4 +1,4 @@
-package models
+package search
 
 type IndexObject struct {
 	Type string `json:"type"`
@@ -11,7 +11,7 @@ type IndexObject struct {
 	Picture     string `json:"picture,omitempty"`
 	Description string `json:"description,omitempty"`
 
-	Keywords string `json:"keywords,omitempty"`
+	Keywords []string `json:"keywords,omitempty"`
 
 	Year      string `json:"year,omitempty"`
 	YearEnd   string `json:"yearEnd,omitempty"`

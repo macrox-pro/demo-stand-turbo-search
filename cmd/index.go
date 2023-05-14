@@ -9,10 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/legion-zver/premier-one-bleve-search/internal/models/premier"
+
+	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+
 	"github.com/blevesearch/bleve/v2"
 	"github.com/corpix/uarand"
 	"github.com/go-resty/resty/v2"
-	"github.com/legion-zver/premier-one-bleve-search/internal/models"
 	"github.com/legion-zver/premier-one-bleve-search/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +38,7 @@ var indexInitCmd = &cobra.Command{
 	Use:   "index:init",
 	Short: "create search index",
 	Run: func(cmd *cobra.Command, args []string) {
-		index, err := bleve.New(indexPath, bleve.NewIndexMapping())
+		index, err := bleve.New(indexPath, search.NewIndexMapping())
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -70,7 +73,7 @@ var indexSyncCmd = &cobra.Command{
 				body     []byte
 				isCache  bool
 			)
-			if _, err := os.Stat(hashPath); os.IsExist(err) {
+			if _, err := os.Stat(hashPath); err == nil || os.IsExist(err) {
 				body, err = os.ReadFile(hashPath)
 				if err == nil {
 					isCache = true
@@ -97,20 +100,28 @@ var indexSyncCmd = &cobra.Command{
 					fmt.Println(err)
 				}
 			}
-			var payload models.Response[models.TV]
+			var payload premier.Response[premier.TV]
 			if err = json.Unmarshal(body, &payload); err != nil {
 				log.Println(err)
 			}
-			fmt.Println("Iteration", page, "with", len(payload.Results), "items...")
+			if isCache {
+				fmt.Println("Cached iteration", page, "with", len(payload.Results), "items...")
+			} else {
+				fmt.Println("Iteration", page, "with", len(payload.Results), "items...")
+			}
+			batch := index.NewBatch()
 			for _, item := range payload.Results {
-				object := models.IndexObject{
+				if len(item.Externals) < 1 {
+					continue
+				}
+				object := search.IndexObject{
 					Slug:           strings.TrimSpace(item.Slug),
 					Name:           strings.TrimSpace(item.Name),
 					Year:           strings.TrimSpace(item.Year),
 					Title:          strings.TrimSpace(item.OriginalTitle),
 					YearEnd:        strings.TrimSpace(item.YearEnd),
 					Picture:        strings.TrimSpace(item.Picture),
-					Keywords:       strings.TrimSpace(item.Keywords),
+					Keywords:       strings.Split(strings.TrimSpace(item.Keywords), " "),
 					IsActive:       item.IsActive,
 					YearStart:      strings.TrimSpace(item.YearStart),
 					Description:    strings.TrimSpace(item.Description),
@@ -122,9 +133,12 @@ var indexSyncCmd = &cobra.Command{
 				if item.Provider != nil {
 					object.Provider = item.Provider.Name
 				}
-				if err := index.Index(fmt.Sprint(item.ID), object); err != nil {
+				if err := batch.Index(fmt.Sprint(item.ID), object); err != nil {
 					log.Println(err)
 				}
+			}
+			if err := index.Batch(batch); err != nil {
+				log.Println(err)
 			}
 			if !payload.HasNext {
 				break
