@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Query struct {
-		Search func(childComplexity int, query string, isActive *bool) int
+		Search func(childComplexity int, query string, useNlp *bool, isActive *bool) int
 	}
 
 	SearchResultObject struct {
@@ -68,7 +68,7 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Search(ctx context.Context, query string, isActive *bool) ([]*model.SearchResultObject, error)
+	Search(ctx context.Context, query string, useNlp *bool, isActive *bool) ([]*model.SearchResultObject, error)
 }
 
 type executableSchema struct {
@@ -96,7 +96,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Search(childComplexity, args["query"].(string), args["isActive"].(*bool)), true
+		return e.complexity.Query.Search(childComplexity, args["query"].(string), args["useNLP"].(*bool), args["isActive"].(*bool)), true
 
 	case "SearchResultObject.ageRestriction":
 		if e.complexity.SearchResultObject.AgeRestriction == nil {
@@ -282,7 +282,7 @@ var sources = []*ast.Source{
 }
 
 type Query {
-    search(query: String! isActive: Boolean): [SearchResultObject!]!
+    search(query: String! useNLP: Boolean isActive: Boolean): [SearchResultObject!]!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -319,14 +319,23 @@ func (ec *executionContext) field_Query_search_args(ctx context.Context, rawArgs
 	}
 	args["query"] = arg0
 	var arg1 *bool
-	if tmp, ok := rawArgs["isActive"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+	if tmp, ok := rawArgs["useNLP"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("useNLP"))
 		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["isActive"] = arg1
+	args["useNLP"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["isActive"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isActive"] = arg2
 	return args, nil
 }
 
@@ -382,7 +391,7 @@ func (ec *executionContext) _Query_search(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Search(rctx, fc.Args["query"].(string), fc.Args["isActive"].(*bool))
+		return ec.resolvers.Query().Search(rctx, fc.Args["query"].(string), fc.Args["useNLP"].(*bool), fc.Args["isActive"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

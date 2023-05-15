@@ -18,5 +18,5 @@ type SearchResultObject {
 }
 
 type Query {
-    search(query: String! isActive: Boolean): [SearchResultObject!]!
+    search(query: String! useNLP: Boolean isActive: Boolean): [SearchResultObject!]!
 }

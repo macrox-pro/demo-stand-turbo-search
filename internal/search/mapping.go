@@ -7,8 +7,6 @@ import (
 
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
 
-	"github.com/blevesearch/bleve/v2/analysis/analyzer/keyword"
-
 	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
 
 	"github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode"
@@ -47,14 +45,17 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 		ruFieldMapping := bleve.NewTextFieldMapping()
 		ruFieldMapping.Analyzer = "custom_ru"
 
+		ignoreFieldMapping := bleve.NewTextFieldMapping()
+		ignoreFieldMapping.IncludeInAll = false
+
 		simpleFieldMapping := bleve.NewTextFieldMapping()
 		simpleFieldMapping.Analyzer = simple.Name
 
 		standardFieldMapping := bleve.NewTextFieldMapping()
 		standardFieldMapping.Analyzer = standard.Name
 
-		keywordFieldMapping := bleve.NewTextFieldMapping()
-		keywordFieldMapping.Analyzer = keyword.Name
+		booleanFieldMapping := bleve.NewBooleanFieldMapping()
+		keywordFieldMapping := bleve.NewKeywordFieldMapping()
 
 		docMapping := bleve.NewDocumentMapping()
 		docMapping.DefaultAnalyzer = ru.AnalyzerName
@@ -64,12 +65,13 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 
 		// Simple fields
 		docMapping.AddFieldMappingsAt("type", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("picture", simpleFieldMapping)
-		// docMapping.AddFieldMappingsAt("keywords", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("ageRestriction", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("yearStart", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("yearEnd", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("year", standardFieldMapping)
+		docMapping.AddFieldMappingsAt("picture", ignoreFieldMapping)
+		docMapping.AddFieldMappingsAt("ageRestriction", keywordFieldMapping)
+		docMapping.AddFieldMappingsAt("yearStart", keywordFieldMapping)
+		docMapping.AddFieldMappingsAt("yearEnd", keywordFieldMapping)
+		docMapping.AddFieldMappingsAt("year", keywordFieldMapping)
+
+		docMapping.AddFieldMappingsAt("isActive", booleanFieldMapping)
 
 		m.DefaultMapping = docMapping
 	}

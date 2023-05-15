@@ -1,9 +1,14 @@
 package search
 
+type Person struct {
+	Text  string
+	Lemma string
+}
+
 type Scenario struct {
 	Types       []string
 	Year        string
-	Persons     []string
+	Persons     []Person
 	PhraseWords []string
 }
 
@@ -23,10 +28,10 @@ func (s *Scenario) AddPhraseWord(v string) *Scenario {
 	return s
 }
 
-func (s *Scenario) AddPersons(v string) *Scenario {
+func (s *Scenario) AddPersons(text, lemma string) *Scenario {
 	if s.Persons == nil {
-		s.Persons = make([]string, 0)
+		s.Persons = make([]Person, 0)
 	}
-	s.Persons = append(s.Persons, v)
+	s.Persons = append(s.Persons, Person{Text: text, Lemma: lemma})
 	return s
 }

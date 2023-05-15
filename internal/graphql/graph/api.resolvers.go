@@ -13,8 +13,8 @@ import (
 )
 
 // Search is the resolver for the search field.
-func (r *queryResolver) Search(ctx context.Context, query string, isActive *bool) ([]*model.SearchResultObject, error) {
-	resp, err := r.SearchEngine.Search(ctx, query, isActive)
+func (r *queryResolver) Search(ctx context.Context, query string, useNlp *bool, isActive *bool) ([]*model.SearchResultObject, error) {
+	resp, err := r.SearchEngine.Search(ctx, query, useNlp, isActive)
 	if err != nil {
 		return nil, err
 	}
