@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tnlp.proto\"\x13\n\x03\x44oc\x12\x0c\n\x04text\x18\x01 \x01(\t\"*\n\x06Intent\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\"A\n\x06\x45ntity\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\r\n\x05value\x18\x04 \x01(\t\"Z\n\x06Result\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x1c\n\x06intent\x18\x02 \x01(\x0b\x32\x07.IntentH\x00\x88\x01\x01\x12\x19\n\x08\x65ntities\x18\x03 \x03(\x0b\x32\x07.EntityB\t\n\x07_intent2\x1d\n\x03NLP\x12\x16\n\x05Parse\x12\x04.Doc\x1a\x07.ResultB\x13Z\x11internal/grpc/nlpb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\tnlp.proto\"\x13\n\x03\x44oc\x12\x0c\n\x04text\x18\x01 \x01(\t\"*\n\x06Intent\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\"W\n\x06\x45ntity\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\r\n\x05value\x18\x04 \x01(\t\x12\x14\n\x0cnormal_value\x18\x05 \x01(\t\"Z\n\x06Result\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x1c\n\x06intent\x18\x02 \x01(\x0b\x32\x07.IntentH\x00\x88\x01\x01\x12\x19\n\x08\x65ntities\x18\x03 \x03(\x0b\x32\x07.EntityB\t\n\x07_intent2\x1d\n\x03NLP\x12\x16\n\x05Parse\x12\x04.Doc\x1a\x07.ResultB\x13Z\x11internal/grpc/nlpb\x06proto3')
 
 
 
@@ -60,9 +60,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _INTENT._serialized_start=34
   _INTENT._serialized_end=76
   _ENTITY._serialized_start=78
-  _ENTITY._serialized_end=143
-  _RESULT._serialized_start=145
-  _RESULT._serialized_end=235
-  _NLP._serialized_start=237
-  _NLP._serialized_end=266
+  _ENTITY._serialized_end=165
+  _RESULT._serialized_start=167
+  _RESULT._serialized_end=257
+  _NLP._serialized_start=259
+  _NLP._serialized_end=288
 # @@protoc_insertion_point(module_scope)

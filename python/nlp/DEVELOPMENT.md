@@ -12,6 +12,12 @@ Install Rasa
 pip install rasa==3.5.9
 ```
 
+Install Natasha
+
+```shell
+pip install natasha
+```
+
 Install grpcio tools (without deps)
 
 ```shell

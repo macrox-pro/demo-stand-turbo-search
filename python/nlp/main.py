@@ -2,21 +2,59 @@ import grpc
 import logging
 import asyncio
 
-from rasa.core.agent import Agent
-from rasa.shared.data import TrainingType
-from rasa.shared.utils.cli import print_error
-
 import nlp_pb2
 import nlp_pb2_grpc
 
+from natasha import Doc, MorphVocab, Segmenter, NewsEmbedding, NewsNERTagger, NewsMorphTagger, NewsSyntaxParser
+
 from rasa.model import get_local_model
+from rasa.core.agent import Agent
+from rasa.shared.data import TrainingType
+from rasa.shared.utils.cli import print_error
 from rasa.shared.constants import DEFAULT_MODELS_PATH
 from rasa.engine.storage.local_model_storage import LocalModelStorage
 
 
 class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
     def __init__(self, model_path):
+        self.emb = NewsEmbedding()
         self.agent = Agent.load(model_path)
+        self.segmenter = Segmenter()
+        self.morph_vocab = MorphVocab()
+        self.ner_tagger = NewsNERTagger(self.emb)
+        self.morph_tagger = NewsMorphTagger(self.emb)
+        self.syntax_parser = NewsSyntaxParser(self.emb)
+
+    def normalize(self, text):
+        doc = Doc(text)
+        doc.segment(self.segmenter)
+        doc.tag_morph(self.morph_tagger)
+        doc.parse_syntax(self.syntax_parser)
+        for token in doc.tokens:
+            token.lemmatize(self.morph_vocab)
+
+        doc.tag_ner(self.ner_tagger)
+
+        for span in doc.spans:
+            span.normalize(self.morph_vocab)
+
+        simple_tokens = []
+        for token in doc.tokens:
+            if len(doc.spans) > 0:
+                span = next(span for span in doc.spans
+                            if span.stop == token.stop and
+                            span.text == token.text)
+
+                if span:
+                    simple_tokens.append(span.normal)
+                    continue
+
+            if token.lemma:
+                simple_tokens.append(token.lemma)
+            else:
+                simple_tokens.append(token.text)
+
+        return " ".join(simple_tokens)
 
     async def Parse(self, request, context):
         d = await self.agent.parse_message(request.text)
@@ -29,10 +67,19 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
 
         entities = d.get('entities', [])
         for entity in entities:
+            value = entity.get("value")
+            entity_type = entity.get("entity")
+
+            if entity_type == "person":
+                value = value.lower().title()
+
+            normal_value = self.normalize(value)
+
             res.entities.append(nlp_pb2.Entity(end=entity.get("end"),
-                                               name=entity.get("entity"),
                                                start=entity.get("start"),
-                                               value=entity.get("value")))
+                                               type=entity_type,
+                                               value=value,
+                                               normal_value=normal_value))
 
         return res
 

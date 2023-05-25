@@ -18,8 +18,9 @@ message Intent {
 message Entity {
   uint32 start = 1;
   uint32 end = 2;
-  string name = 3;
+  string type = 3;
   string value = 4;
+  string normal_value = 5;
 }
 
 message Result {
