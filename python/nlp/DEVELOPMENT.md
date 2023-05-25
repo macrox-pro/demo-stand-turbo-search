@@ -1,39 +1,38 @@
+Create a new virtual environment by choosing a Python interpreter and making a ./venv directory to hold it:
+
+```shell
+source ./venv/bin/activate
+```
+
 # Prepare
-
-Install gRPC Tools
-
-```shell
-pip3.7 install grpc_tools
-```
-
-Install Natasha NLP Tools and Yargy
-
-```shell
-pip3.7 install natasha
-pip3.7 install yargy
-```
 
 Install Rasa
 
 ```shell
-pip3.7 install rasa
-pip3.7 install --upgrade aio-pika
+pip install rasa==3.5.9
 ```
 
-# Train NLU Rasa
+Install grpcio tools (without deps)
+
+```shell
+pip install --no-deps grpcio-tools==1.48.2
+```
+
+## Generate gRPC 
+
+```shell
+python -m grpc_tools.protoc -I../../api/proto --python_out=. --grpc_python_out=. ../../api/proto/nlp.proto
+```
+
+
+## Train NLU Rasa
 
 ```shell
 rasa train nlu
 ```
 
-## Test NLU
+## Test NLU Rasa
 
 ```shell
 rasa shell nlu
-```
-
-# Generate gRPC 
-
-```shell
-python3.7 -m grpc_tools.protoc -I../../api/proto --python_out=. --pyi_out=. --grpc_python_out=. ../../api/proto/nlp.proto
 ```

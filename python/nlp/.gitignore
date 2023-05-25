@@ -1,2 +1,4 @@
 .rasa/
 .idea/
+venv/
+models/*

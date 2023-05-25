@@ -10,36 +10,20 @@ message Doc {
   string text = 1;
 }
 
-message DocToken {
-  uint32 start = 1;
-  uint32 stop = 2;
-  string text = 3;
-  string pos = 4;
-  string id = 5;
-  string head_id = 6;
-  string rel = 7;
-  string lemma = 8;
+message Intent {
+  string name = 1;
+  float confidence = 2;
 }
 
-message DocSpan {
+message Entity {
   uint32 start = 1;
-  uint32 stop = 2;
-  string type = 3;
-  string text = 4;
-  string normal = 5;
-  repeated DocToken tokens = 6;
-}
-
-message DocSent {
-  uint32 start = 1;
-  uint32 stop = 2;
-  string text = 3;
-  repeated DocSpan spans = 4;
-  repeated DocToken tokens = 5;
+  uint32 end = 2;
+  string name = 3;
+  string value = 4;
 }
 
 message Result {
-  repeated DocToken tokens = 1;
-  repeated DocSent sents = 2;
-  repeated DocSpan spans = 3;
+  string text = 1;
+  optional Intent intent = 2;
+  repeated Entity entities = 3;
 }
