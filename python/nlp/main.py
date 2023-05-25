@@ -5,7 +5,7 @@ import asyncio
 import nlp_pb2
 import nlp_pb2_grpc
 
-from natasha import Doc, MorphVocab, Segmenter, NewsEmbedding, NewsNERTagger, NewsMorphTagger, NewsSyntaxParser
+from natasha import Doc, PER, MorphVocab, Segmenter, NewsEmbedding, NewsNERTagger, NewsMorphTagger, NewsSyntaxParser
 
 from rasa.model import get_local_model
 from rasa.core.agent import Agent
@@ -37,6 +37,8 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
 
         for span in doc.spans:
             span.normalize(self.morph_vocab)
+            if span.type == PER:
+                span.normal = span.normal.title()
 
         simple_tokens = []
         for token in doc.tokens:
