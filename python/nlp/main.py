@@ -5,7 +5,7 @@ import asyncio
 import nlp_pb2
 import nlp_pb2_grpc
 
-from natasha import Doc, PER, MorphVocab, Segmenter, NewsEmbedding, NewsNERTagger, NewsMorphTagger, NewsSyntaxParser
+from natasha import Doc, MorphVocab, Segmenter, NewsEmbedding, NewsNERTagger, NewsMorphTagger, NewsSyntaxParser
 
 from rasa.model import get_local_model
 from rasa.core.agent import Agent
@@ -25,8 +25,11 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
         self.morph_tagger = NewsMorphTagger(self.emb)
         self.syntax_parser = NewsSyntaxParser(self.emb)
 
-    def normalize(self, text):
-        doc = Doc(text)
+    def normalize_entity_value(self, value, is_named):
+        if is_named:
+            value = value.lower().title()
+
+        doc = Doc(value)
         doc.segment(self.segmenter)
         doc.tag_morph(self.morph_tagger)
         doc.parse_syntax(self.syntax_parser)
@@ -37,8 +40,6 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
 
         for span in doc.spans:
             span.normalize(self.morph_vocab)
-            if span.type == PER and span.normal is not None:
-                span.normal = span.normal.title()
 
         simple_tokens = []
         for token in doc.tokens:
@@ -47,14 +48,19 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
                             if span.stop == token.stop and
                             span.text == token.text)
 
-                if span:
+                if span is not None:
                     simple_tokens.append(span.normal)
                     continue
 
-            if token.lemma:
+            if token.lemma is not None:
+                # noinspection SpellCheckingInspection
+                if token.pos == "PROPN" and is_named:
+                    token.lemma = token.lemma.title()
+
                 simple_tokens.append(token.lemma)
-            else:
-                simple_tokens.append(token.text)
+                continue
+
+            simple_tokens.append(token.text)
 
         return " ".join(simple_tokens)
 
@@ -71,12 +77,7 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
         for entity in entities:
             value = entity.get("value")
             entity_type = entity.get("entity")
-
-            if entity_type == "person":
-                value = value.lower().title()
-
-            normal_value = self.normalize(value)
-
+            normal_value = self.normalize_entity_value(value, entity_type == "person")
             res.entities.append(nlp_pb2.Entity(end=entity.get("end"),
                                                start=entity.get("start"),
                                                type=entity_type,
