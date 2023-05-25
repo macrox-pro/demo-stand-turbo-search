@@ -44,13 +44,15 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
         simple_tokens = []
         for token in doc.tokens:
             if len(doc.spans) > 0:
-                span = next(span for span in doc.spans
-                            if span.stop == token.stop and
-                            span.text == token.text)
-
-                if span is not None:
-                    simple_tokens.append(span.normal)
-                    continue
+                try:
+                    span = next(span for span in doc.spans
+                                if span.stop == token.stop and
+                                span.text == token.text)
+                    if span is not None:
+                        simple_tokens.append(span.normal)
+                        continue
+                except Exception as e:
+                    print(e)
 
             if token.lemma is not None:
                 # noinspection SpellCheckingInspection
