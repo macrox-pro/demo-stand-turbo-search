@@ -37,7 +37,7 @@ class ExampleNLPServicer(nlp_pb2_grpc.NLPServicer):
 
         for span in doc.spans:
             span.normalize(self.morph_vocab)
-            if span.type == PER:
+            if span.type == PER and span.normal is not None:
                 span.normal = span.normal.title()
 
         simple_tokens = []
