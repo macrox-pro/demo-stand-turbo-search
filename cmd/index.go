@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/samber/lo"
 
 	cresty "github.com/legion-zver/premier-one-bleve-search/internal/helpers/cached_resty"
 
@@ -114,7 +117,11 @@ var indexSyncCmd = &cobra.Command{
 					IsActive:       item.IsActive,
 				}
 				if item.Type != nil {
-					object.Type = item.Type.Title
+					if len(item.Type.Title) > 0 {
+						object.Type = strings.ToLower(item.Type.Title)
+					} else {
+						object.Type = strings.ToLower(item.Type.Name)
+					}
 				}
 				if item.Provider != nil {
 					object.Provider = item.Provider.Name
@@ -124,6 +131,10 @@ var indexSyncCmd = &cobra.Command{
 						if len(genre.Name) > 0 {
 							object.Genres = append(object.Genres, genre.Name)
 						}
+					}
+					if len(object.Genres) > 1 {
+						object.Genres = lo.Uniq(object.Genres)
+						sort.Strings(object.Genres)
 					}
 				}
 				if len(item.Countries) > 0 {
@@ -135,6 +146,11 @@ var indexSyncCmd = &cobra.Command{
 							object.Countries = append(object.Countries, country.TwoLetter)
 						}
 					}
+					if len(object.Countries) > 1 {
+						object.Countries = lo.Uniq(object.Countries)
+						sort.Strings(object.Countries)
+					}
+
 				}
 				// Get all persons
 				personPage := 1
@@ -172,6 +188,13 @@ var indexSyncCmd = &cobra.Command{
 					}
 					personPage++
 				}
+				if len(object.Persons) > 1 {
+					object.Persons = lo.Uniq(object.Persons)
+					sort.Strings(object.Persons)
+				}
+				object.HasGenres = len(object.Genres) > 0
+				object.HasPersons = len(object.Persons) > 0
+				object.HasCountries = len(object.Countries) > 0
 				if err := batch.Index(fmt.Sprint(item.ID), object); err != nil {
 					log.Println(err)
 				}

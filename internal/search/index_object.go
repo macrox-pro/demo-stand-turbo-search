@@ -18,6 +18,10 @@ type IndexObject struct {
 	Persons   []string `json:"persons,omitempty"`
 	Countries []string `json:"countries,omitempty"`
 
+	HasGenres    bool `json:"hasGenres,omitempty"`
+	HasPersons   bool `json:"hasPersons,omitempty"`
+	HasCountries bool `json:"hasCountries,omitempty"`
+
 	Year      string `json:"year,omitempty"`
 	YearEnd   string `json:"yearEnd,omitempty"`
 	YearStart string `json:"yearStart,omitempty"`

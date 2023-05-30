@@ -3,7 +3,7 @@ package search
 import (
 	"log"
 
-	"github.com/blevesearch/bleve/v2/analysis/analyzer/simple"
+	"github.com/blevesearch/bleve/v2/analysis/lang/en"
 
 	"github.com/blevesearch/bleve/v2/analysis/analyzer/standard"
 
@@ -20,8 +20,9 @@ import (
 )
 
 func NewIndexMapping() *mapping.IndexMappingImpl {
-	m, tokenFilters := bleve.NewIndexMapping(), []string{
+	m, filters := bleve.NewIndexMapping(), []string{
 		lowercase.Name,
+		en.StopName,
 		ru.StopName,
 		ru.SnowballStemmerName,
 	}
@@ -33,12 +34,12 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 	}); err != nil {
 		log.Fatalln(err)
 	} else {
-		tokenFilters = append(tokenFilters, "ngram_1_2")
+		filters = append(filters, "ngram_1_2")
 	}
 	if err := m.AddCustomAnalyzer("custom_ru", map[string]interface{}{
 		"type":          custom.Name,
 		"tokenizer":     unicode.Name,
-		"token_filters": tokenFilters,
+		"token_filters": filters,
 	}); err != nil {
 		log.Fatalln(err)
 	} else {
@@ -46,10 +47,9 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 		ruFieldMapping.Analyzer = "custom_ru"
 
 		ignoreFieldMapping := bleve.NewTextFieldMapping()
+		ignoreFieldMapping.IncludeTermVectors = false
 		ignoreFieldMapping.IncludeInAll = false
-
-		simpleFieldMapping := bleve.NewTextFieldMapping()
-		simpleFieldMapping.Analyzer = simple.Name
+		ignoreFieldMapping.Index = false
 
 		standardFieldMapping := bleve.NewTextFieldMapping()
 		standardFieldMapping.Analyzer = standard.Name
@@ -64,8 +64,6 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 		docMapping.AddFieldMappingsAt("title", ruFieldMapping)
 
 		// Simple fields
-		docMapping.AddFieldMappingsAt("type", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("service", standardFieldMapping)
 		docMapping.AddFieldMappingsAt("ageRestriction", keywordFieldMapping)
 		docMapping.AddFieldMappingsAt("yearStart", keywordFieldMapping)
 		docMapping.AddFieldMappingsAt("yearEnd", keywordFieldMapping)
@@ -76,6 +74,9 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 
 		// Boolean fields
 		docMapping.AddFieldMappingsAt("isActive", booleanFieldMapping)
+		docMapping.AddFieldMappingsAt("hasGenres", booleanFieldMapping)
+		docMapping.AddFieldMappingsAt("hasPersons", booleanFieldMapping)
+		docMapping.AddFieldMappingsAt("hasCountries", booleanFieldMapping)
 
 		m.DefaultMapping = docMapping
 	}

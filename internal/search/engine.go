@@ -29,15 +29,14 @@ type engine struct {
 }
 
 func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive *bool) (sq query.Query) {
-	def := bleve.NewDisjunctionQuery(
-		newFieldMatchQuery("name", q),
-		newFieldMatchPhraseQuery("title", q),
-		newFieldMatchPhraseQuery("description", q),
-	)
 	defer func() {
 		if sq == nil {
 			// use default
-			sq = def
+			sq = bleve.NewDisjunctionQuery(
+				newFieldMatchQuery("name", q),
+				newFieldMatchPhraseQuery("title", q),
+				newFieldMatchPhraseQuery("description", q),
+			)
 		}
 		if isActive != nil {
 			sq = bleve.NewConjunctionQuery(
@@ -52,6 +51,7 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 			log.Println(err)
 			return
 		}
+		log.Println(q, result)
 		if result.Intent == nil {
 			return
 		}
@@ -65,11 +65,11 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 		conj := bleve.NewConjunctionQuery()
 		switch result.Intent.Name {
 		case "films_by_person":
-			conj.AddQuery(newFieldTermQuery("type", "фильм"))
+			conj.AddQuery(newFieldMatchQuery("type", "фильм"))
 		case "serials_by_person":
-			conj.AddQuery(newFieldTermQuery("type", "сериал"))
+			conj.AddQuery(newFieldMatchQuery("type", "сериал"))
 		case "shows_by_person":
-			conj.AddQuery(newFieldTermQuery("type", "шоу"))
+			conj.AddQuery(newFieldMatchQuery("type", "шоу"))
 		default:
 			log.Println("intent", result.Intent.Name, "not supported! skip brain search query")
 			return
@@ -78,7 +78,10 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 			switch entity.Type {
 			case "person":
 				conj.AddQuery(
-					newFieldMatchQuery("persons", entity.NormalValue),
+					bleve.NewDisjunctionQuery(
+						newFieldMatchPhraseQuery("persons", entity.Value),
+						newFieldMatchPhraseQuery("persons", entity.NormalValue),
+					),
 				)
 			case "title":
 				conj.AddQuery(
@@ -116,48 +119,6 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 		if len(conj.Conjuncts) > 0 {
 			sq = conj
 		}
-		//TODO: Deprecated code
-		//if scenario != nil {
-		//	log.Println(q, *scenario)
-		//	conj := bleve.NewConjunctionQuery()
-		//	if phrase := strings.Join(scenario.PhraseWords, " "); len(phrase) > 0 {
-		//		conj.AddQuery(
-		//			bleve.NewDisjunctionQuery(
-		//				newFieldMatchQuery("name", phrase),
-		//				newFieldMatchPhraseQuery("title", phrase),
-		//				newFieldMatchPhraseQuery("description", phrase),
-		//			))
-		//	}
-		//	if len(scenario.Types) > 0 {
-		//		typesDis := bleve.NewDisjunctionQuery()
-		//		if len(scenario.Types) > 1 {
-		//			for _, t := range scenario.Types {
-		//				typesDis.AddQuery(newFieldTermQuery("type", t))
-		//			}
-		//			conj.AddQuery(typesDis)
-		//		} else {
-		//			conj.AddQuery(newFieldTermQuery("type", scenario.Types[0]))
-		//		}
-		//	}
-		//	if len(scenario.Year) > 0 {
-		//		conj.AddQuery(
-		//			bleve.NewDisjunctionQuery(
-		//				newFieldTermQuery("year", scenario.Year),
-		//				newFieldTermQuery("yearEnd", scenario.Year),
-		//				newFieldTermQuery("yearStart", scenario.Year),
-		//			),
-		//		)
-		//	}
-		//	for _, person := range scenario.Persons {
-		//		conj.AddQuery(
-		//			bleve.NewDisjunctionQuery(
-		//				newFieldMatchQuery("keywords", person.Text),
-		//				newFieldMatchQuery("keywords", person.Lemma),
-		//			),
-		//		)
-		//	}
-		//	sq = conj
-		//}
 	}
 	return
 }
