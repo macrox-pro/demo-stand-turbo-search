@@ -24,17 +24,16 @@ func (r *queryResolver) Search(ctx context.Context, query string, useNlp *bool, 
 			ID:    hit.ID,
 			Score: hit.Score,
 		}
-		if mapstructure.Decode(hit.Fields, obj) == nil {
-			switch obj.Service {
-			case "premier.one":
-				var url string
-				if obj.Slug != nil {
-					url = fmt.Sprintf("https://premier.one/show/%s", *obj.Slug)
-				} else {
-					url = fmt.Sprintf("https://premier.one/show/%s", obj.ID)
-				}
-				obj.URL = &url
+		_ = mapstructure.WeakDecode(hit.Fields, obj)
+		switch obj.Service {
+		case "premier.one":
+			var url string
+			if obj.Slug != nil {
+				url = fmt.Sprintf("https://premier.one/show/%s", *obj.Slug)
+			} else {
+				url = fmt.Sprintf("https://premier.one/show/%s", obj.ID)
 			}
+			obj.URL = &url
 		}
 		result[i] = obj
 	}

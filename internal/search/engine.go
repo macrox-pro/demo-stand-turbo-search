@@ -78,6 +78,9 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 			switch entity.Type {
 			case "person":
 				conj.AddQuery(
+					newBoolFieldQuery("hasPersons", true),
+				)
+				conj.AddQuery(
 					bleve.NewDisjunctionQuery(
 						newFieldMatchPhraseQuery("persons", entity.Value),
 						newFieldMatchPhraseQuery("persons", entity.NormalValue),
@@ -93,9 +96,15 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 				)
 			case "genre":
 				conj.AddQuery(
+					newBoolFieldQuery("hasGenres", true),
+				)
+				conj.AddQuery(
 					newFieldMatchQuery("genres", entity.NormalValue),
 				)
 			case "country_production":
+				conj.AddQuery(
+					newBoolFieldQuery("hasCountries", true),
+				)
 				conj.AddQuery(
 					newFieldMatchQuery("countries", entity.NormalValue),
 				)
