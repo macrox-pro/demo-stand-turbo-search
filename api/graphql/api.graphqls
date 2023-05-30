@@ -2,6 +2,7 @@ type SearchResultObject {
     id: ID!
     type: String!
     score: Float!
+    service: String!
     isActive: Boolean!
     url: String
     slug: String
@@ -9,7 +10,9 @@ type SearchResultObject {
     title: String
     picture: String
     provider: String
-    keywords: [String!]
+    genres: [String!]
+    persons: [String!]
+    countries: [String!]
     description: String
     year: String
     yearEnd: String

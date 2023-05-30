@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
 
 	"github.com/legion-zver/premier-one-bleve-search/internal/grpc/nlp"
 )
+
+var nonNumericRegex = regexp.MustCompile(`\D`)
 
 type Engine interface {
 	Search(ctx context.Context, q string, useNLP, isActive *bool) (*bleve.SearchResult, error)
@@ -74,8 +78,39 @@ func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive 
 			switch entity.Type {
 			case "person":
 				conj.AddQuery(
-					newFieldMatchQuery("keywords", entity.NormalValue),
+					newFieldMatchQuery("persons", entity.NormalValue),
 				)
+			case "title":
+				conj.AddQuery(
+					newFieldMatchPhraseQuery("title", entity.Value),
+				)
+			case "details":
+				conj.AddQuery(
+					newFieldMatchPhraseQuery("description", entity.Value),
+				)
+			case "genre":
+				conj.AddQuery(
+					newFieldMatchQuery("genres", entity.NormalValue),
+				)
+			case "country_production":
+				conj.AddQuery(
+					newFieldMatchQuery("countries", entity.NormalValue),
+				)
+			case "year_production":
+				year := strings.TrimSpace(nonNumericRegex.ReplaceAllString(entity.Value, ""))
+				if len(year) > 0 {
+					conj.AddQuery(
+						bleve.NewDisjunctionQuery(
+							newFieldTermQuery("year", year),
+							newFieldTermQuery("yearEnd", year),
+							newFieldTermQuery("yearStart", year),
+						),
+					)
+				} else {
+					log.Println("fail extract number year from string -", entity.Value)
+				}
+			default:
+				log.Println("entity", entity.Type, "not supported! ignore it for search query")
 			}
 		}
 		if len(conj.Conjuncts) > 0 {
@@ -135,10 +170,13 @@ func (e *engine) Search(ctx context.Context, q string, useNLP, isActive *bool) (
 		"name",
 		"year",
 		"title",
+		"genres",
+		"service",
 		"yearEnd",
 		"picture",
-		"keywords",
+		"persons",
 		"provider",
+		"countries",
 		"isActive",
 		"yearStart",
 		"description",

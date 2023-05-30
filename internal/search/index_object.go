@@ -1,17 +1,22 @@
 package search
 
 type IndexObject struct {
+	Service string `json:"service"`
+
 	Type string `json:"type"`
 
 	Provider string `json:"provider,omitempty"`
 
+	Picture string `json:"picture,omitempty"`
+
 	Slug        string `json:"slug,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Title       string `json:"title,omitempty"`
-	Picture     string `json:"picture,omitempty"`
 	Description string `json:"description,omitempty"`
 
-	Keywords []string `json:"keywords,omitempty"`
+	Genres    []string `json:"genres,omitempty"`
+	Persons   []string `json:"persons,omitempty"`
+	Countries []string `json:"countries,omitempty"`
 
 	Year      string `json:"year,omitempty"`
 	YearEnd   string `json:"yearEnd,omitempty"`

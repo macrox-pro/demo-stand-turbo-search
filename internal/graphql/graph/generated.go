@@ -49,14 +49,17 @@ type ComplexityRoot struct {
 
 	SearchResultObject struct {
 		AgeRestriction func(childComplexity int) int
+		Countries      func(childComplexity int) int
 		Description    func(childComplexity int) int
+		Genres         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		IsActive       func(childComplexity int) int
-		Keywords       func(childComplexity int) int
 		Name           func(childComplexity int) int
+		Persons        func(childComplexity int) int
 		Picture        func(childComplexity int) int
 		Provider       func(childComplexity int) int
 		Score          func(childComplexity int) int
+		Service        func(childComplexity int) int
 		Slug           func(childComplexity int) int
 		Title          func(childComplexity int) int
 		Type           func(childComplexity int) int
@@ -105,12 +108,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchResultObject.AgeRestriction(childComplexity), true
 
+	case "SearchResultObject.countries":
+		if e.complexity.SearchResultObject.Countries == nil {
+			break
+		}
+
+		return e.complexity.SearchResultObject.Countries(childComplexity), true
+
 	case "SearchResultObject.description":
 		if e.complexity.SearchResultObject.Description == nil {
 			break
 		}
 
 		return e.complexity.SearchResultObject.Description(childComplexity), true
+
+	case "SearchResultObject.genres":
+		if e.complexity.SearchResultObject.Genres == nil {
+			break
+		}
+
+		return e.complexity.SearchResultObject.Genres(childComplexity), true
 
 	case "SearchResultObject.id":
 		if e.complexity.SearchResultObject.ID == nil {
@@ -126,19 +143,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchResultObject.IsActive(childComplexity), true
 
-	case "SearchResultObject.keywords":
-		if e.complexity.SearchResultObject.Keywords == nil {
-			break
-		}
-
-		return e.complexity.SearchResultObject.Keywords(childComplexity), true
-
 	case "SearchResultObject.name":
 		if e.complexity.SearchResultObject.Name == nil {
 			break
 		}
 
 		return e.complexity.SearchResultObject.Name(childComplexity), true
+
+	case "SearchResultObject.persons":
+		if e.complexity.SearchResultObject.Persons == nil {
+			break
+		}
+
+		return e.complexity.SearchResultObject.Persons(childComplexity), true
 
 	case "SearchResultObject.picture":
 		if e.complexity.SearchResultObject.Picture == nil {
@@ -160,6 +177,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchResultObject.Score(childComplexity), true
+
+	case "SearchResultObject.service":
+		if e.complexity.SearchResultObject.Service == nil {
+			break
+		}
+
+		return e.complexity.SearchResultObject.Service(childComplexity), true
 
 	case "SearchResultObject.slug":
 		if e.complexity.SearchResultObject.Slug == nil {
@@ -266,6 +290,7 @@ var sources = []*ast.Source{
     id: ID!
     type: String!
     score: Float!
+    service: String!
     isActive: Boolean!
     url: String
     slug: String
@@ -273,7 +298,9 @@ var sources = []*ast.Source{
     title: String
     picture: String
     provider: String
-    keywords: [String!]
+    genres: [String!]
+    persons: [String!]
+    countries: [String!]
     description: String
     year: String
     yearEnd: String
@@ -422,6 +449,8 @@ func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field
 				return ec.fieldContext_SearchResultObject_type(ctx, field)
 			case "score":
 				return ec.fieldContext_SearchResultObject_score(ctx, field)
+			case "service":
+				return ec.fieldContext_SearchResultObject_service(ctx, field)
 			case "isActive":
 				return ec.fieldContext_SearchResultObject_isActive(ctx, field)
 			case "url":
@@ -436,8 +465,12 @@ func (ec *executionContext) fieldContext_Query_search(ctx context.Context, field
 				return ec.fieldContext_SearchResultObject_picture(ctx, field)
 			case "provider":
 				return ec.fieldContext_SearchResultObject_provider(ctx, field)
-			case "keywords":
-				return ec.fieldContext_SearchResultObject_keywords(ctx, field)
+			case "genres":
+				return ec.fieldContext_SearchResultObject_genres(ctx, field)
+			case "persons":
+				return ec.fieldContext_SearchResultObject_persons(ctx, field)
+			case "countries":
+				return ec.fieldContext_SearchResultObject_countries(ctx, field)
 			case "description":
 				return ec.fieldContext_SearchResultObject_description(ctx, field)
 			case "year":
@@ -722,6 +755,50 @@ func (ec *executionContext) fieldContext_SearchResultObject_score(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SearchResultObject_service(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SearchResultObject_service(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Service, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SearchResultObject_service(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SearchResultObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1017,8 +1094,8 @@ func (ec *executionContext) fieldContext_SearchResultObject_provider(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _SearchResultObject_keywords(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SearchResultObject_keywords(ctx, field)
+func (ec *executionContext) _SearchResultObject_genres(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SearchResultObject_genres(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1031,7 +1108,7 @@ func (ec *executionContext) _SearchResultObject_keywords(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Keywords, nil
+		return obj.Genres, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1045,7 +1122,89 @@ func (ec *executionContext) _SearchResultObject_keywords(ctx context.Context, fi
 	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SearchResultObject_keywords(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SearchResultObject_genres(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SearchResultObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SearchResultObject_persons(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SearchResultObject_persons(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Persons, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SearchResultObject_persons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SearchResultObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SearchResultObject_countries(ctx context.Context, field graphql.CollectedField, obj *model.SearchResultObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SearchResultObject_countries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Countries, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SearchResultObject_countries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SearchResultObject",
 		Field:      field,
@@ -3140,6 +3299,13 @@ func (ec *executionContext) _SearchResultObject(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "service":
+
+			out.Values[i] = ec._SearchResultObject_service(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "isActive":
 
 			out.Values[i] = ec._SearchResultObject_isActive(ctx, field, obj)
@@ -3171,9 +3337,17 @@ func (ec *executionContext) _SearchResultObject(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._SearchResultObject_provider(ctx, field, obj)
 
-		case "keywords":
+		case "genres":
 
-			out.Values[i] = ec._SearchResultObject_keywords(ctx, field, obj)
+			out.Values[i] = ec._SearchResultObject_genres(ctx, field, obj)
+
+		case "persons":
+
+			out.Values[i] = ec._SearchResultObject_persons(ctx, field, obj)
+
+		case "countries":
+
+			out.Values[i] = ec._SearchResultObject_countries(ctx, field, obj)
 
 		case "description":
 

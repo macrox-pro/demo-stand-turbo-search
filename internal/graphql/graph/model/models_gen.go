@@ -6,6 +6,7 @@ type SearchResultObject struct {
 	ID             string   `json:"id"`
 	Type           string   `json:"type"`
 	Score          float64  `json:"score"`
+	Service        string   `json:"service"`
 	IsActive       bool     `json:"isActive"`
 	URL            *string  `json:"url,omitempty"`
 	Slug           *string  `json:"slug,omitempty"`
@@ -13,7 +14,9 @@ type SearchResultObject struct {
 	Title          *string  `json:"title,omitempty"`
 	Picture        *string  `json:"picture,omitempty"`
 	Provider       *string  `json:"provider,omitempty"`
-	Keywords       []string `json:"keywords,omitempty"`
+	Genres         []string `json:"genres,omitempty"`
+	Persons        []string `json:"persons,omitempty"`
+	Countries      []string `json:"countries,omitempty"`
 	Description    *string  `json:"description,omitempty"`
 	Year           *string  `json:"year,omitempty"`
 	YearEnd        *string  `json:"yearEnd,omitempty"`

@@ -65,12 +65,16 @@ func NewIndexMapping() *mapping.IndexMappingImpl {
 
 		// Simple fields
 		docMapping.AddFieldMappingsAt("type", standardFieldMapping)
-		docMapping.AddFieldMappingsAt("picture", ignoreFieldMapping)
+		docMapping.AddFieldMappingsAt("service", standardFieldMapping)
 		docMapping.AddFieldMappingsAt("ageRestriction", keywordFieldMapping)
 		docMapping.AddFieldMappingsAt("yearStart", keywordFieldMapping)
 		docMapping.AddFieldMappingsAt("yearEnd", keywordFieldMapping)
 		docMapping.AddFieldMappingsAt("year", keywordFieldMapping)
 
+		// Ignored
+		docMapping.AddFieldMappingsAt("picture", ignoreFieldMapping)
+
+		// Boolean fields
 		docMapping.AddFieldMappingsAt("isActive", booleanFieldMapping)
 
 		m.DefaultMapping = docMapping

@@ -19,7 +19,9 @@ type TV struct {
 	Keywords    string `json:"keywords,omitempty"`
 	Description string `json:"description,omitempty"`
 
+	Countries []Country  `json:"countries,omitempty"`
 	Externals []External `json:"external_ids,omitempty"`
+	Genres    []Genre    `json:"genres,omitempty"`
 
 	AgeRestriction string `json:"age_restriction,omitempty"`
 
