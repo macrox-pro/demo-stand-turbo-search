@@ -1,0 +1,6 @@
+.idea/
+.rasa/
+data/
+venv/
+research/
+DEVELOPMENT.md

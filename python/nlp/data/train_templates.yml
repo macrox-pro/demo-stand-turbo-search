@@ -1,0 +1,211 @@
+version: "3.1"
+
+nlu:
+  - lookup: genre
+    mods:
+      - "upper"
+      - "lower"
+      - "title"
+    entries:
+      genres:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "nomn", "plur" ]
+          - [ "acc2", "sing" ]
+    templates:
+      - "$genre"
+
+  - regex: person
+    examples: |
+      - [А-Яа-я][а-я’'-]+
+      - [А-Яа-я][а-я’'-]+\s[А-Яа-я][а-я’'-]+
+
+  - intent: shows_by_person
+    mods:
+      - "upper"
+      - "lower"
+      - "title"
+    entries:
+      persons:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "ablt", "sing" ]
+          - [ "gen2", "sing" ]
+      types:
+        grams:
+          - ["nomn", "sing"]
+          - ["nomn", "plur"]
+        items:
+          - "шоу"
+          - "эфир"
+          - "твшоу"
+          - "тв шоу"
+          - "тв-шоу"
+          - "телешоу"
+          - "передача"
+          - "программа"
+          - "телепередача"
+    templates:
+      - "$type С [$person](person)"
+      - "$type с [$person](person)"
+      - "$type [$person](person)"
+      - "[$person](person) $type"
+
+  - intent: films_by_person
+    mods:
+      - "upper"
+      - "lower"
+      - "title"
+    entries:
+      persons:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "ablt", "sing" ]
+          - [ "gen2", "sing" ]
+      genres:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "nomn", "plur" ]
+          - [ "acc2", "sing" ]
+        items:
+          - "ужасы"
+          - "вестерн"
+          - "комедия"
+          - "мелодрама"
+          - "приключения"
+          - "фантастика"
+          - "детектив"
+          - "триллер"
+          - "боевик"
+          - "драма"
+      types:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "nomn", "plur" ]
+        items:
+          - "фильмография"
+          - "кинофильм"
+          - "трилогия"
+          - "фильм"
+          - "кино"
+    templates:
+      - "[$genre](genre) $type С [$person](person)"
+      - "[$genre](genre) $type с [$person](person)"
+      - "[$genre](genre) $type [$person](person)"
+      - "$type [$genre](genre) С [$person](person)"
+      - "$type [$genre](genre) c [$person](person)"
+      - "$type [$genre](genre) [$person](person)"
+      - "$type С АКТЕРОМ [$person](person)"
+      - "$type с актером [$person](person)"
+      - "$type С [$person](person)"
+      - "$type с [$person](person)"
+      - "$type [$person](person)"
+      - "$type режисера [$person](person)"
+      - "[$person](person) $type"
+
+  - intent: serials_by_person
+    mods:
+      - "upper"
+      - "lower"
+      - "title"
+    entries:
+      persons:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "ablt", "sing" ]
+          - [ "gen2", "sing" ]
+      types:
+        grams:
+          - [ "nomn", "sing" ]
+          - [ "nomn", "plur" ]
+        items:
+          - "многосерийный фильм"
+          - "многосерийный"
+          - "киносериал"
+          - "сериал"
+          - "серия"
+    templates:
+      - "$type С [$person](person)"
+      - "$type с [$person](person)"
+      - "$type [$person](person)"
+      - "[$person](person) $type"
+
+  - intent: out_of_score
+    examples: |
+      - камеди клаб
+      - камеди
+      - Comedy
+      - мамочки
+      - играли играли и доигрались
+      - смотреть сверхъестественное
+      - губка боб квадратные штаны
+      - хоть раз в жизни
+      - вне себя
+      - один день
+      - голодные игры
+      - тайны следствия
+      - фильмы про космос
+      - воскресный вечер с владимиром соловьевым
+      - гарри поттер и философский камень
+      - секс в большом городе смотреть онлайн
+      - так близко к горизонту
+      - фиксики все серии подряд
+      - фильмы про зомби
+      - люди в черном 3
+      - люди в черном-3
+      - грозовые ворота
+      - форсаж
+      - Форсаж 8
+      - Хоббит
+      - любовь и другие лекарства
+      - улицы разбитых фонарей
+      - путешествие хоббита
+      - спасти рядового райана
+      - фильмы ужасы
+      - она - мужчина
+      - она-мужчина
+      - ЖУКИ
+      - черепашки
+      - Секреты на кухне
+      - черный Лотос
+      - мир дружба жвачка
+      - Бойцовский клуб
+      - дети шпионов 2
+      - где два брата искали
+      - Битва
+      - битва шефов
+      - Эта любовь
+      - дикий ангел
+      - Ниндзя против пиратов
+      - монстр
+      - сны
+      - они
+      - мы
+      - оно
+      - я
+      - пес
+      - Галустян+
+      - галустян плюс
+      - звезды в африке
+      - однажды в россии
+      - Россия
+      - Ольга
+      - Невский
+      - Кто Я
+      - сашатаня
+      - САШАТАНЯ
+      - саша и таня
+      - универ
+      - Comedy Club
+      - на гребне волны
+      - диверсант
+      - совершенно секретно
+      - от рассвета до заката
+      - во тьме
+      - в эфире
+      - винни-пух
+      - смешарики
+      - smash
+      - лалабук
+      - буба
+      - маша и медведь

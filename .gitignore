@@ -39,3 +39,6 @@ fabric.properties
 python/nlp/.idea
 index.bleve
 cache.resty
+
+.index.counts.yaml
+.index.counts.yml

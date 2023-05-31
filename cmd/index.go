@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blevesearch/bleve/v2/document"
+
 	"github.com/samber/lo"
 
 	cresty "github.com/legion-zver/vss-brain-search/internal/helpers/cached_resty"
@@ -35,6 +37,7 @@ func init() {
 
 	rootCmd.AddCommand(indexInitCmd)
 	rootCmd.AddCommand(indexSyncCmd)
+	rootCmd.AddCommand(indexCountsCmd)
 }
 
 var indexInitCmd = &cobra.Command{
@@ -49,6 +52,93 @@ var indexInitCmd = &cobra.Command{
 			_ = index.Close()
 		}(index)
 		log.Println("Ready!")
+	},
+}
+
+var indexCountsCmd = &cobra.Command{
+	Use:   "index:counts",
+	Short: "get counts from search index",
+	Run: func(cmd *cobra.Command, args []string) {
+		index, err := bleve.Open(indexPath)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer func(index bleve.Index) {
+			_ = index.Close()
+		}(index)
+
+		idDict, err := index.FieldDict("_id")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		typeCounter := make(map[string]int)
+		genresCounter := make(map[string]int)
+		personsCounter := make(map[string]int)
+		countriesCounter := make(map[string]int)
+		for {
+			dict, err := idDict.Next()
+			if err != nil || dict == nil {
+				break
+			}
+			doc, err := index.Document(dict.Term)
+			if err != nil {
+				break
+			}
+			if obj, ok := doc.(*document.Document); ok {
+				for _, field := range obj.Fields {
+					switch field.Name() {
+					case "countries":
+						countriesCounter[string(field.Value())]++
+					case "persons":
+						personsCounter[string(field.Value())]++
+					case "genres":
+						genresCounter[string(field.Value())]++
+					case "type":
+						typeCounter[string(field.Value())]++
+					}
+				}
+			}
+		}
+		_ = idDict.Close()
+
+		fmt.Println("\ntypes:")
+		for k, v := range typeCounter {
+			if len(k) > 0 {
+				fmt.Printf("  - name: %s\n", k)
+				fmt.Printf("    count: %d\n", v)
+			}
+		}
+		fmt.Println("\ngenres:")
+		for k, v := range genresCounter {
+			k = strings.Trim(strings.TrimSpace(k), ".,:'\"")
+			if len(k) > 0 {
+				fmt.Printf("  - name: %s\n", k)
+				fmt.Printf("    count: %d\n", v)
+			}
+		}
+		fmt.Println("\ncountries:")
+		for k, v := range countriesCounter {
+			k = strings.Trim(strings.TrimSpace(k), ".,:'\"")
+			if len(k) > 0 {
+				fmt.Printf("  - name: %s\n", k)
+				fmt.Printf("    count: %d\n", v)
+			}
+		}
+		fmt.Println("\npersons:")
+		for k, v := range personsCounter {
+			k = strings.Trim(strings.TrimSpace(k), ".,:'\"")
+			if len(k) > 0 {
+				if strings.Contains(k, ".") ||
+					strings.Contains(k, ",") {
+					continue
+				}
+				if len(strings.Split(k, " ")) > 2 {
+					continue
+				}
+				fmt.Printf("  - name: %s\n", k)
+				fmt.Printf("    count: %d\n", v)
+			}
+		}
 	},
 }
 
