@@ -12,11 +12,11 @@ import (
 
 	"github.com/samber/lo"
 
-	cresty "github.com/legion-zver/premier-one-bleve-search/internal/helpers/cached_resty"
+	cresty "github.com/legion-zver/vss-brain-search/internal/helpers/cached_resty"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/models/premier"
+	"github.com/legion-zver/vss-brain-search/internal/models/premier"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+	"github.com/legion-zver/vss-brain-search/internal/search"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/corpix/uarand"

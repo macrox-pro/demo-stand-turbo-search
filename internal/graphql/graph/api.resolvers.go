@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/graphql/graph/model"
+	"github.com/legion-zver/vss-brain-search/internal/graphql/graph/model"
 	"github.com/mitchellh/mapstructure"
 )
 

@@ -6,14 +6,14 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/grpc/nlp"
+	"github.com/legion-zver/vss-brain-search/internal/grpc/nlp"
 
 	"google.golang.org/grpc"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+	"github.com/legion-zver/vss-brain-search/internal/search"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/legion-zver/premier-one-bleve-search/internal/graphql"
+	"github.com/legion-zver/vss-brain-search/internal/graphql"
 
 	"github.com/blevesearch/bleve/v2"
 

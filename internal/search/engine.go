@@ -10,7 +10,7 @@ import (
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
 
-	"github.com/legion-zver/premier-one-bleve-search/internal/grpc/nlp"
+	"github.com/legion-zver/vss-brain-search/internal/grpc/nlp"
 )
 
 var nonNumericRegex = regexp.MustCompile(`\D`)

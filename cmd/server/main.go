@@ -1,6 +1,6 @@
 package main
 
-import "github.com/legion-zver/premier-one-bleve-search/cmd"
+import "github.com/legion-zver/vss-brain-search/cmd"
 
 func main() {
 	cmd.Execute()

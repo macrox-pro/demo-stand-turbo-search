@@ -1,4 +1,4 @@
-module github.com/legion-zver/premier-one-bleve-search
+module github.com/legion-zver/vss-brain-search
 
 go 1.20
 

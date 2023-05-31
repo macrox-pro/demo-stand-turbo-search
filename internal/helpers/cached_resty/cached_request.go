@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/legion-zver/premier-one-bleve-search/internal/utils"
+	"github.com/legion-zver/vss-brain-search/internal/utils"
 )
 
 type CachedRequest struct {

@@ -7,7 +7,7 @@
 package graph
 
 import (
-	"github.com/legion-zver/premier-one-bleve-search/internal/search"
+	"github.com/legion-zver/vss-brain-search/internal/search"
 )
 
 type Resolver struct {
