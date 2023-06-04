@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -15,8 +17,13 @@ import (
 
 var nonNumericRegex = regexp.MustCompile(`\D`)
 
+type Where struct {
+	Service *string
+	Active  *bool
+}
+
 type Engine interface {
-	Search(ctx context.Context, q string, useNLP, isActive *bool) (*bleve.SearchResult, error)
+	Search(ctx context.Context, text string, w *Where, useNLP *bool) (*bleve.SearchResult, *nlp.Result, error)
 }
 
 type Options struct {
@@ -28,112 +35,118 @@ type engine struct {
 	Options
 }
 
-func (e *engine) newSearchQuery(ctx context.Context, q string, useNLP, isActive *bool) (sq query.Query) {
+func (e *engine) newSearchQuery(ctx context.Context, text string, w *Where, useNLP *bool) (q query.Query, nlpResult *nlp.Result) {
 	defer func() {
-		if sq == nil {
+		if q == nil {
 			// use default
-			sq = bleve.NewDisjunctionQuery(
-				newFieldMatchQuery("name", q),
-				newFieldMatchPhraseQuery("title", q),
-				newFieldMatchPhraseQuery("description", q),
+			q = bleve.NewDisjunctionQuery(
+				newFieldMatchQuery("name", text),
+				newFieldMatchPhraseQuery("title", text),
+				newFieldMatchPhraseQuery("description", text),
 			)
 		}
-		if isActive != nil {
-			sq = bleve.NewConjunctionQuery(
-				newBoolFieldQuery("isActive", *isActive),
-				sq,
-			)
-		}
-	}()
-	if useNLP != nil && *useNLP && e.NLP != nil {
-		result, err := e.NLP.Parse(ctx, &nlp.Doc{Text: q})
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		log.Println(q, result)
-		if result.Intent == nil {
-			return
-		}
-		if result.Intent.Confidence < 0.2 {
-			// TODO: Add to log for next train
-			return
-		}
-		if result.Intent.Name == "out_of_score" {
-			return
-		}
-		conj := bleve.NewConjunctionQuery()
-		switch result.Intent.Name {
-		case "films_by_person":
-			conj.AddQuery(newFieldMatchQuery("type", "фильм"))
-		case "serials_by_person":
-			conj.AddQuery(newFieldMatchQuery("type", "сериал"))
-		case "shows_by_person":
-			conj.AddQuery(newFieldMatchQuery("type", "шоу"))
-		default:
-			log.Println("intent", result.Intent.Name, "not supported! skip brain search query")
-			return
-		}
-		for _, entity := range result.Entities {
-			switch entity.Type {
-			case "person":
-				conj.AddQuery(
-					newBoolFieldQuery("hasPersons", true),
+		if w != nil {
+			if w.Active != nil {
+				q = bleve.NewConjunctionQuery(
+					newBoolFieldQuery("isActive", *w.Active),
+					q,
 				)
-				conj.AddQuery(
-					bleve.NewDisjunctionQuery(
-						newFieldMatchPhraseQuery("persons", entity.Value),
-						newFieldMatchPhraseQuery("persons", entity.NormalValue),
-					),
+			}
+			if w.Service != nil {
+				q = bleve.NewConjunctionQuery(
+					newFieldTermQuery("service", *w.Service),
+					q,
 				)
-			case "title":
-				conj.AddQuery(
-					newFieldMatchPhraseQuery("title", entity.Value),
-				)
-			case "details":
-				conj.AddQuery(
-					newFieldMatchPhraseQuery("description", entity.Value),
-				)
-			case "genre":
-				conj.AddQuery(
-					newBoolFieldQuery("hasGenres", true),
-				)
-				conj.AddQuery(
-					newFieldMatchQuery("genres", entity.NormalValue),
-				)
-			case "country_production":
-				conj.AddQuery(
-					newBoolFieldQuery("hasCountries", true),
-				)
-				conj.AddQuery(
-					newFieldMatchQuery("countries", entity.NormalValue),
-				)
-			case "year_production":
-				year := strings.TrimSpace(nonNumericRegex.ReplaceAllString(entity.Value, ""))
-				if len(year) > 0 {
-					conj.AddQuery(
-						bleve.NewDisjunctionQuery(
-							newFieldTermQuery("year", year),
-							newFieldTermQuery("yearEnd", year),
-							newFieldTermQuery("yearStart", year),
-						),
-					)
-				} else {
-					log.Println("fail extract number year from string -", entity.Value)
-				}
-			default:
-				log.Println("entity", entity.Type, "not supported! ignore it for search query")
 			}
 		}
-		if len(conj.Conjuncts) > 0 {
-			sq = conj
+	}()
+	if !(useNLP != nil && *useNLP && e.NLP != nil) {
+		return
+	}
+	var err error
+	nlpResult, err = e.NLP.Parse(ctx, &nlp.Doc{Text: text})
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if nlpResult.Intent == nil ||
+		nlpResult.Intent.Confidence < 0.2 ||
+		nlpResult.Intent.Name == "out_of_score" {
+		nlpResult = nil
+		return
+	}
+	conj := bleve.NewConjunctionQuery()
+	switch nlpResult.Intent.Name {
+	case "films_by_person":
+		conj.AddQuery(newFieldMatchQuery("type", "фильм"))
+	case "serials_by_person":
+		conj.AddQuery(newFieldMatchQuery("type", "сериал"))
+	case "shows_by_person":
+		conj.AddQuery(newFieldMatchQuery("type", "шоу"))
+	default:
+		log.Println("intent", nlpResult.Intent.Name, "not supported! skip brain search query")
+		return
+	}
+	for _, entity := range nlpResult.Entities {
+		switch entity.Type {
+		case "person":
+			conj.AddQuery(
+				newBoolFieldQuery("hasPersons", true),
+			)
+			conj.AddQuery(
+				bleve.NewDisjunctionQuery(
+					newFieldMatchPhraseQuery("persons", entity.Value),
+					newFieldMatchPhraseQuery("persons", entity.NormalValue),
+				),
+			)
+		case "title":
+			conj.AddQuery(
+				newFieldMatchPhraseQuery("title", entity.Value),
+			)
+		case "details":
+			conj.AddQuery(
+				newFieldMatchPhraseQuery("description", entity.Value),
+			)
+		case "genre":
+			conj.AddQuery(
+				newBoolFieldQuery("hasGenres", true),
+			)
+			conj.AddQuery(
+				newFieldMatchQuery("genres", entity.NormalValue),
+			)
+		case "country_production":
+			conj.AddQuery(
+				newBoolFieldQuery("hasCountries", true),
+			)
+			conj.AddQuery(
+				newFieldMatchQuery("countries", entity.NormalValue),
+			)
+		case "year_production":
+			year := strings.TrimSpace(nonNumericRegex.ReplaceAllString(entity.Value, ""))
+			if len(year) > 0 {
+				conj.AddQuery(
+					bleve.NewDisjunctionQuery(
+						newFieldTermQuery("year", year),
+						newFieldTermQuery("yearEnd", year),
+						newFieldTermQuery("yearStart", year),
+					),
+				)
+			} else {
+				log.Println("fail extract number year from string -", entity.Value)
+			}
+		default:
+			log.Println("entity", entity.Type, "not supported! ignore it for search query")
 		}
+	}
+	if len(conj.Conjuncts) > 0 {
+		q = conj
 	}
 	return
 }
 
-func (e *engine) Search(ctx context.Context, q string, useNLP, isActive *bool) (*bleve.SearchResult, error) {
-	req := bleve.NewSearchRequestOptions(e.newSearchQuery(ctx, q, useNLP, isActive), 21, 0, false)
+func (e *engine) Search(ctx context.Context, text string, where *Where, useNLP *bool) (*bleve.SearchResult, *nlp.Result, error) {
+	q, nlpResult := e.newSearchQuery(ctx, text, where, useNLP)
+	req := bleve.NewSearchRequestOptions(q, 21, 0, false)
 	req.Fields = []string{
 		"type",
 		"slug",
@@ -158,7 +171,15 @@ func (e *engine) Search(ctx context.Context, q string, useNLP, isActive *bool) (
 		"-yearEnd",
 		"-id",
 	})
-	return e.Index.Search(req)
+	res, err := e.Index.Search(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, hit := range res.Hits {
+		hit.Score = math.Floor(hit.Score*100) / 100
+	}
+	sort.Sort(HitsWithSortByYears(res.Hits))
+	return res, nlpResult, nil
 }
 
 func New(opts Options) (Engine, error) {

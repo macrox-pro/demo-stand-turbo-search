@@ -2,7 +2,7 @@
 
 package model
 
-type SearchResultObject struct {
+type IndexObject struct {
 	ID             string   `json:"id"`
 	Type           string   `json:"type"`
 	Score          float64  `json:"score"`
@@ -22,4 +22,33 @@ type SearchResultObject struct {
 	YearEnd        *string  `json:"yearEnd,omitempty"`
 	YearStart      *string  `json:"yearStart,omitempty"`
 	AgeRestriction *string  `json:"ageRestriction,omitempty"`
+}
+
+type SearchEntity struct {
+	End         int     `json:"end"`
+	Start       int     `json:"start"`
+	Type        string  `json:"type"`
+	Value       string  `json:"value"`
+	NormalValue *string `json:"normalValue,omitempty"`
+}
+
+type SearchIntent struct {
+	Name       string  `json:"name"`
+	Confidence float64 `json:"confidence"`
+}
+
+type SearchResponse struct {
+	Documents []*IndexObject          `json:"documents,omitempty"`
+	Metadata  *SearchResponseMetadata `json:"metadata"`
+}
+
+type SearchResponseMetadata struct {
+	Entities []*SearchEntity `json:"entities,omitempty"`
+	Intent   *SearchIntent   `json:"intent,omitempty"`
+	Query    string          `json:"query"`
+}
+
+type SearchWhereInput struct {
+	Service *string `json:"service,omitempty"`
+	Active  *bool   `json:"active,omitempty"`
 }

@@ -9,18 +9,54 @@ import (
 	"fmt"
 
 	"github.com/legion-zver/vss-brain-search/internal/graphql/graph/model"
+	"github.com/legion-zver/vss-brain-search/internal/search"
 	"github.com/mitchellh/mapstructure"
 )
 
 // Search is the resolver for the search field.
-func (r *queryResolver) Search(ctx context.Context, query string, useNlp *bool, isActive *bool) ([]*model.SearchResultObject, error) {
-	resp, err := r.SearchEngine.Search(ctx, query, useNlp, isActive)
+func (r *queryResolver) Search(ctx context.Context, query string, where *model.SearchWhereInput, useNlp *bool) (*model.SearchResponse, error) {
+	var searchWhere *search.Where
+	if where != nil {
+		searchWhere = &search.Where{
+			Active:  where.Active,
+			Service: where.Service,
+		}
+	}
+	result, nlpResult, err := r.SearchEngine.Search(ctx, query, searchWhere, useNlp)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*model.SearchResultObject, len(resp.Hits), len(resp.Hits))
-	for i, hit := range resp.Hits {
-		obj := &model.SearchResultObject{
+	resp := &model.SearchResponse{
+		Documents: make([]*model.IndexObject, len(result.Hits)),
+		Metadata: &model.SearchResponseMetadata{
+			Query: query,
+		},
+	}
+	if nlpResult != nil {
+		if nlpResult.Intent != nil {
+			resp.Metadata.Intent = &model.SearchIntent{
+				Name:       nlpResult.Intent.Name,
+				Confidence: float64(nlpResult.Intent.Confidence),
+			}
+		}
+		if len(nlpResult.Entities) > 0 {
+			resp.Metadata.Entities = make([]*model.SearchEntity, len(nlpResult.Entities))
+			for i, entity := range nlpResult.Entities {
+				searchEntity := &model.SearchEntity{
+					Start: int(entity.Start),
+					Value: entity.Value,
+					Type:  entity.Type,
+					End:   int(entity.End),
+				}
+				if len(entity.NormalValue) > 0 {
+					searchEntity.NormalValue = &entity.NormalValue
+				}
+				resp.Metadata.Entities[i] = searchEntity
+			}
+		}
+	}
+	for i, hit := range result.Hits {
+		obj := &model.IndexObject{
 			ID:    hit.ID,
 			Score: hit.Score,
 		}
@@ -35,9 +71,9 @@ func (r *queryResolver) Search(ctx context.Context, query string, useNlp *bool, 
 			}
 			obj.URL = &url
 		}
-		result[i] = obj
+		resp.Documents[i] = obj
 	}
-	return result, nil
+	return resp, nil
 }
 
 // Query returns QueryResolver implementation.

@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/legion-zver/vss-brain-search/internal/grpc/nlp"
@@ -62,7 +64,7 @@ var rootCmd = &cobra.Command{
 		}
 		server := graphql.NewServer(engine)
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-		http.Handle("/query", server)
+		http.Handle("/query", cors.Default().Handler(server))
 		log.Println("Listen GraphQL on", addr)
 		if err := http.ListenAndServe(addr, nil); err != nil {
 			log.Fatalln(err)

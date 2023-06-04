@@ -1,0 +1,5 @@
+schema: schema.graphql
+extensions:
+  endpoints:
+    Dev:
+      url: http://localhost:9000/query

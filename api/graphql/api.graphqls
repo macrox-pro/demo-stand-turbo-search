@@ -1,4 +1,4 @@
-type SearchResultObject {
+type IndexObject {
     id: ID!
     type: String!
     score: Float!
@@ -20,6 +20,35 @@ type SearchResultObject {
     ageRestriction: String
 }
 
+type SearchIntent {
+    name: String!
+    confidence: Float!
+}
+
+type SearchEntity {
+    end: Int!
+    start: Int!
+    type: String!
+    value: String!
+    normalValue: String
+}
+
+input SearchWhereInput {
+    service: String
+    active: Boolean
+}
+
+type SearchResponseMetadata {
+    entities: [SearchEntity!]
+    intent: SearchIntent
+    query: String!
+}
+
+type SearchResponse {
+    documents: [IndexObject!]
+    metadata: SearchResponseMetadata!
+}
+
 type Query {
-    search(query: String! useNLP: Boolean isActive: Boolean): [SearchResultObject!]!
+    search(query: String! where: SearchWhereInput, useNLP: Boolean): SearchResponse!
 }
