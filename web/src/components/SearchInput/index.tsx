@@ -6,9 +6,18 @@ import {KeyboardEvent, useCallback} from 'react';
 
 export type SearchInputProps = InputProps & {
     onEnter?: (e: KeyboardEvent<HTMLInputElement>) => void;
+    loading?: boolean;
 };
 
-export function SearchInput({id = 'search', className = '', onEnter, onKeyDown, ...props}: SearchInputProps) {
+export function SearchInput({
+    className = '',
+    onKeyDown,
+    disabled = false,
+    loading = false,
+    onEnter,
+    id = 'search',
+    ...props
+}: SearchInputProps) {
     const onKeyDownCallback = useCallback(
         (e: KeyboardEvent<HTMLInputElement>) => {
             if (onKeyDown) {
@@ -21,9 +30,19 @@ export function SearchInput({id = 'search', className = '', onEnter, onKeyDown, 
         [onKeyDown, onEnter],
     );
     return (
-        <label htmlFor={id} className={`${className} relative text-gray-400 focus-within:text-gray-600 block`.trim()}>
-            <MagnifyingGlassCircleIcon className="pointer-events-none w-8 h-8 absolute top-1/2 transform -translate-y-1/2 left-3" />
-            <Input {...props} onKeyDown={onKeyDownCallback} className="w-full pl-14" id={id} />
+        <label htmlFor={id} className={`${className} relative block`.trim()}>
+            {loading ? (
+                <span className="loading loading-spinner loading-sm absolute top-1/2 transform -translate-y-1/2 left-3" />
+            ) : (
+                <MagnifyingGlassCircleIcon className="pointer-events-none w-8 h-8 absolute top-1/2 transform -translate-y-1/2 left-3" />
+            )}
+            <Input
+                {...props}
+                disabled={loading || disabled}
+                onKeyDown={onKeyDownCallback}
+                className="w-full pl-14"
+                id={id}
+            />
         </label>
     );
 }

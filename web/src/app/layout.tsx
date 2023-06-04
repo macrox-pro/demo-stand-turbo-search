@@ -5,7 +5,7 @@ import {Providers} from '@/app/providers';
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
     return (
-        <html lang="en">
+        <html lang="en" data-theme="black">
             <body>
                 <Providers>{children}</Providers>
             </body>
